@@ -1,0 +1,4 @@
+show dbs - shows all dbs
+use x - x being the name of the db
+show collections - shows table in current db
+db.table.find() - tabel refers to name of table - returns all entries
