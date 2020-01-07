@@ -1,0 +1,4 @@
+name            url                 verb                desc
+index           /dogs               GET                 
+NEW             /dogs/NEW           GET
+CREATE          /dogs               POST

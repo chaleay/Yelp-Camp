@@ -24,6 +24,9 @@
             <figure class="figure">
                 <img class = "figure-img img-thumbnail" src = "<%= campground.image %>">
                 <figcaption class="figure-caption text-center"> <strong><%= campground.name %></strong></figcaption>
+                <p class = "text-center mt-3">
+                    <a href="/campgrounds/<%=campground._id%>" class="btn btn-primary">More Info</a>
+                </p>
             </figure>
         </div>
     <% });  %>

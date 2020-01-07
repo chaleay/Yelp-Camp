@@ -12,7 +12,8 @@ app.set("view engine", "ejs");
 //schema setup
 var campgroundSchema = new mongoose.Schema({
     name: String,
-    image: String
+    image: String,
+    description: String
 });
 
 var Campground = mongoose.model("Campground", campgroundSchema);
@@ -21,8 +22,9 @@ var Campground = mongoose.model("Campground", campgroundSchema);
 /*
 Campground.create(
     {
-        name: "Brokeback Creek",
-        image: "https://cdn.pixabay.com/photo/2017/09/26/13/50/rv-2788677__340.jpg"
+        name: "Gayass Creek",
+        image: "https://cdn.pixabay.com/photo/2017/09/26/13/50/rv-2788677__340.jpg",
+        description: "This a huge pile of shit campsite with a really small dick.."
 
     }, function(err, campground){
         if(err){
@@ -54,6 +56,7 @@ app.get('/', function(req,res){
     res.render('landing');
 });
 
+//INDEX ROUTE 
 app.get('/campgrounds', function(req, res){
        
        Campground.find({}, function(err, allCampgrounds){
@@ -61,7 +64,7 @@ app.get('/campgrounds', function(req, res){
                 console.log(err);
             }
             else{
-                res.render("campgrounds", {campgrounds: allCampgrounds})
+                res.render("index", {campgrounds: allCampgrounds})
             }
        });
        // res.render('campgrounds', {campgrounds: campgrounds}) 
@@ -70,15 +73,17 @@ app.get('/campgrounds', function(req, res){
 //follow REST - here you can create a new campground
 //NOTE: get req data from post - req.body, get req data from get - req.query
 
+//CREATE ROUTE -- add new campground to database
 app.post("/campgrounds", function(req, res){
     //get data from form
     var name = req.body.name;
-    var img = req.body.image;
-    
+    var image = req.body.image;
+    var description = req.body.description;
     //create new campground object
     var newcampground = {
         name: name,
-        image: img
+        image: image,
+        description: description
     };
     
     //save to db, redirect back to campgrounds page if successful
@@ -94,10 +99,30 @@ app.post("/campgrounds", function(req, res){
     
 });
 
+//NEW ROUTE
 //show the form that sends data to post route
 app.get('/campgrounds/new', function(req, res){
     res.render("new");
 
+});
+
+
+//this needs to go below new route
+//SHOW - SHOWS MORE INFO about campground
+app.get("/campgrounds/:id", function(req, res){
+    //find campground with provided id
+    //req.params will return parameters in the matched route.
+    var id = req.params.id;
+    
+    Campground.findById(id, function(err, foundCampground){
+        if(err){
+            console.log(err);
+        }
+        else{
+            res.render('show', {campground: foundCampground});
+        }
+    });
+  
 });
 
 app.listen(3000, function(){
