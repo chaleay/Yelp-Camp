@@ -17,6 +17,8 @@ var campgroundSchema = new mongoose.Schema({
 
 var Campground = mongoose.model("Campground", campgroundSchema);
 
+
+/*
 Campground.create(
     {
         name: "Brokeback Creek",
@@ -31,7 +33,7 @@ Campground.create(
             console.log(campground);
         }
     });
-
+*/
 
 /* array
 var campgrounds = 
