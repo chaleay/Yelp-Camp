@@ -1,30 +1,33 @@
 //reqs
-var express = require('express'),
-    app = express(),
-    request = require('request'),
-    bodyParser = require("body-parser"),
-    mongoose = require("mongoose")
+var express =     require('express'),
+    app         = express(),
+    request     = require('request'),
+    bodyParser  = require("body-parser"),
+    mongoose    = require("mongoose"),
+    //import our schema
+    Campground  = require("./models/campground"),
+    Comment     = require("./models/comment"),
+    seedDB =      require("./seeds")
 
-mongoose.connect("mongodb://localhost/yelp_camp");
+//exec
+seedDB();
+
+//run this set method before connection?
+mongoose.set('useUnifiedTopology', true);
+mongoose.connect("mongodb://localhost/yelp_camp", {useNewUrlParser: true});
+
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 
-//schema setup
-var campgroundSchema = new mongoose.Schema({
-    name: String,
-    image: String,
-    description: String
-});
 
-var Campground = mongoose.model("Campground", campgroundSchema);
 
 
 /*
 Campground.create(
     {
-        name: "Gayass Creek",
+        name: "Cheek Creek",
         image: "https://cdn.pixabay.com/photo/2017/09/26/13/50/rv-2788677__340.jpg",
-        description: "This a huge pile of shit campsite with a really small dick.."
+        description: "The cheeks on this creek are amazing!"
 
     }, function(err, campground){
         if(err){
@@ -37,21 +40,8 @@ Campground.create(
     });
 */
 
-/* array
-var campgrounds = 
-[
-    {name: "Brokeback creek", image: "https://cdn.pixabay.com/photo/2017/09/26/13/50/rv-2788677__340.jpg"},
-    {name: "The Drag", image: "https://cdn.pixabay.com/photo/2015/07/09/01/59/picnic-table-837221__340.jpg"},
-    {name: "Cucc Camper", image: "https://cdn.pixabay.com/photo/2016/04/28/15/49/airstream-1359135__340.jpg"},
-    {name: "Brokeback creek", image: "https://cdn.pixabay.com/photo/2017/09/26/13/50/rv-2788677__340.jpg"},
-    {name: "The Drag", image: "https://cdn.pixabay.com/photo/2015/07/09/01/59/picnic-table-837221__340.jpg"},
-    {name: "Cucc Camper", image: "https://cdn.pixabay.com/photo/2016/04/28/15/49/airstream-1359135__340.jpg"},
-    {name: "Brokeback creek", image: "https://cdn.pixabay.com/photo/2017/09/26/13/50/rv-2788677__340.jpg"},
-    {name: "The Drag", image: "https://cdn.pixabay.com/photo/2015/07/09/01/59/picnic-table-837221__340.jpg"},
-    {name: "Cucc Camper", image: "https://cdn.pixabay.com/photo/2016/04/28/15/49/airstream-1359135__340.jpg"}
-];
-*/
 
+//landing
 app.get('/', function(req,res){
     res.render('landing');
 });
@@ -64,7 +54,7 @@ app.get('/campgrounds', function(req, res){
                 console.log(err);
             }
             else{
-                res.render("index", {campgrounds: allCampgrounds})
+                res.render("campgrounds/index", {campgrounds: allCampgrounds})
             }
        });
        // res.render('campgrounds', {campgrounds: campgrounds}) 
@@ -102,7 +92,7 @@ app.post("/campgrounds", function(req, res){
 //NEW ROUTE
 //show the form that sends data to post route
 app.get('/campgrounds/new', function(req, res){
-    res.render("new");
+    res.render("campgrounds/new");
 
 });
 
@@ -114,17 +104,64 @@ app.get("/campgrounds/:id", function(req, res){
     //req.params will return parameters in the matched route.
     var id = req.params.id;
     
-    Campground.findById(id, function(err, foundCampground){
+    Campground.findById(id).populate("comments").exec(function(err, foundCampground){
         if(err){
             console.log(err);
         }
         else{
-            res.render('show', {campground: foundCampground});
+            console.log(foundCampground);
+            res.render('campgrounds/show', {campground: foundCampground});
         }
     });
   
 });
 
+// ====== 
+//  Comments Route
+// ======
+
+//new route
+app.get("/campgrounds/:id/comments/new", function(req, res){
+    //find campground by id
+    Campground.findById(req.params.id, function(err, foundCampground){
+        if(err){
+            console.log(err);
+        }
+        else{
+            res.render("comments/new", {campground: foundCampground});
+        }
+    });
+    
+});
+
+
+app.post("/campgrounds/:id/comments", function(req, res){
+    //lookup campground by id
+    Campground.findById(req.params.id, function(err, foundCampground){
+        if(err){
+            console.log(err);
+        }
+        else
+        {
+            Comment.create(req.body.comment, function(err, comment){
+                if(err){
+                    console.log(err);
+                }
+                else{
+                    foundCampground.comments.push(comment);
+                    foundCampground.save();
+                    res.redirect("/campgrounds/" + foundCampground._id);
+                }
+            });
+        }
+    });
+    //create new comment, connect new comment to campground
+    //redirect campground
+    
+});
+
+
+//LISTEN
 app.listen(3000, function(){
     console.log("Yelp Camp Has Started");
 });
