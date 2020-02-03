@@ -39,6 +39,11 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
+//pass user to templates
+app.use(function(req, res, next){
+    res.locals.currentUser = req.user;
+    next();
+});
 
 /*
 Campground.create(
@@ -66,13 +71,13 @@ app.get('/', function(req,res){
 
 //INDEX ROUTE 
 app.get('/campgrounds', function(req, res){
-       
+       console.log(req.user);
        Campground.find({}, function(err, allCampgrounds){
             if(err){
                 console.log(err);
             }
             else{
-                res.render("campgrounds/index", {campgrounds: allCampgrounds})
+                res.render("campgrounds/index", {campgrounds: allCampgrounds, currentUser: req.user})
             }
        });
        // res.render('campgrounds', {campgrounds: campgrounds}) 
