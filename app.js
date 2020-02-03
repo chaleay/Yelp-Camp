@@ -1,16 +1,16 @@
 //reqs
-var express =     require('express'),
-    app         = express(),
-    request     = require('request'),
-    bodyParser  = require("body-parser"),
-    mongoose    = require("mongoose"),
+var express       = require('express'),
+    app           = express(),
+    request       = require('request'),
+    bodyParser    = require("body-parser"),
+    mongoose      = require("mongoose"),
+    passport      = require('passport'),
+    LocalStrategy = require('passport-local'),
     //import our schema
     Campground  = require("./models/campground"),
     Comment     = require("./models/comment"),
+    User        = require("./models/user"),
     seedDB =      require("./seeds")
-
-//exec
-seedDB();
 
 //run this set method before connection?
 mongoose.set('useUnifiedTopology', true);
@@ -18,8 +18,24 @@ mongoose.connect("mongodb://localhost/yelp_camp", {useNewUrlParser: true});
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
+app.use(express.static(__dirname + "/public"));
+
+//exec
+seedDB();
 
 
+//passport config
+app.use(require("express-session")({
+    secret: "Congrats on logging in...",
+    resave: false,
+    saveUninitialized: false
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 
 /*
@@ -121,7 +137,7 @@ app.get("/campgrounds/:id", function(req, res){
 // ======
 
 //new route
-app.get("/campgrounds/:id/comments/new", function(req, res){
+app.get("/campgrounds/:id/comments/new", IsLoggedIn, function(req, res){
     //find campground by id
     Campground.findById(req.params.id, function(err, foundCampground){
         if(err){
@@ -135,7 +151,7 @@ app.get("/campgrounds/:id/comments/new", function(req, res){
 });
 
 
-app.post("/campgrounds/:id/comments", function(req, res){
+app.post("/campgrounds/:id/comments", IsLoggedIn, function(req, res){
     //lookup campground by id
     Campground.findById(req.params.id, function(err, foundCampground){
         if(err){
@@ -160,6 +176,56 @@ app.post("/campgrounds/:id/comments", function(req, res){
     
 });
 
+
+//Auth Routes //
+
+//show register form
+app.get("/register", function(req, res){
+    res.render("register");
+});
+
+//handle sign up logic
+app.post("/register", function(req, res){
+    var newUser = new User({username: req.body.username});
+    User.register(newUser, req.body.password, function(err, user){
+        if(err){
+            console.log(err);
+            return res.render("register");
+        }
+        passport.authenticate('local')(req, res, function(){
+            res.redirect("/campgrounds");
+        });
+    });
+});
+
+
+//show login form
+app.get("/login", function(req, res){
+    res.render("login");
+});
+
+//handle login logic
+app.post("/login", passport.authenticate("local", {
+    successRedirect: "/campgrounds",
+    failureRedirect: "/login"
+    
+    }), function(req, res){
+
+});
+
+//handle logout req
+app.get('/logout', function(req, res){
+    req.logout();
+    res.redirect('/campgrounds');
+});
+
+
+function IsLoggedIn(req, res, next){
+    if(req.isAuthenticated()){
+        return next();
+    }
+    res.redirect('/login');
+}
 
 //LISTEN
 app.listen(3000, function(){
