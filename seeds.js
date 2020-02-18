@@ -27,11 +27,13 @@ var data =[
 
 function seedDB(){
     //remove all campgrounds from collection
+    
     Comment.deleteMany({}, function(err){
         if(err){
             console.log(err);
         }
         else{
+            console.log('removing comments...');
             Campground.deleteMany({}, function(err){
                 if(err){
                     console.log(err);
@@ -39,6 +41,7 @@ function seedDB(){
                 else{
                     console.log("removed campgrounds");
                      //add a few campgrounds
+                     
                      data.forEach(function(seed){
                     //create adds entry to collection
                         Campground.create(seed, function(err, data){
@@ -48,6 +51,7 @@ function seedDB(){
                                 else{
                                     console.log("added campground " + data.name);
                                     //create a comment
+                                    /*
                                     Comment.create(
                                         {
                                     
@@ -63,14 +67,19 @@ function seedDB(){
                                                 console.log("created a new comment and attached it to the " + data.name + " campground");
                                             }
                                         });
+                                     */
                                     }
                                 
                                 });
                             });
+                         
                         }
                 });
         }
     }); 
+    
+    
+
 }
 
 //name of the module to execute in app
