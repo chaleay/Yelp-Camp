@@ -1,6 +1,5 @@
 //reqs
 var express       = require('express'),
-    app           = express(),
     request       = require('request'),
     bodyParser    = require("body-parser"),
     mongoose      = require("mongoose"),
@@ -10,8 +9,10 @@ var express       = require('express'),
     Campground  = require("./models/campground"),
     Comment     = require("./models/comment"),
     User        = require("./models/user"),
-    seedDB =      require("./seeds")
-
+    seedDB =      require("./seeds"),
+    methodOverride = require("method-override")
+  
+var app = express();
 
 var commentRoutes = require("./routes/comments"),
     campgroundRoutes = require("./routes/campgrounds"),
@@ -26,7 +27,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 //set the directory where we serve files from 
 app.use(express.static(__dirname + "/public"));
 app.set("view engine", "ejs");
-app.use(express.static(__dirname + "/public"));
+app.use(methodOverride("_method"));
 
 //exec - seed db with predefined materials
 //seedDB();

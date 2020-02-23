@@ -52,7 +52,70 @@ router.post("/", IsLoggedIn, function(req, res){
     
 });
 
-function IsLoggedIn(req, res, next){
+//edit route
+router.get("/:comment_id/edit", CheckCommentOwnership, function(req, res){
+    
+        
+   Comment.findById(req.params.comment_id, function(err, foundComment){
+        if(err){
+            res.redirect("/campgrounds");
+        }
+        else{
+            res.render("comments/edit", {comment: foundComment, campground_id: req.params.id}); //pass in campground id
+        }
+    });
+});
+
+
+//UPATE ROUTE
+router.put("/:comment_id", CheckCommentOwnership, function(req, res){
+    
+    var editedComment = req.body.comment;
+    //find and update campground by given id
+    Comment.findByIdAndUpdate(req.params.comment_id, editedComment, function(err, foundComment){
+        if(err){
+            res.redirect("/campgrounds");
+            console.log("err encountered... " + '\n' + err);
+        }
+        else{
+            res.redirect("/campgrounds/" + req.params.id);
+        }
+    });
+});
+
+//delete route 
+router.delete("/:comment_id", function(req, res){
+    Comment.findByIdAndRemove(req.params.comment_id, function(err){
+         res.redirect("/campgrounds/" + req.params.id);
+    });
+ });
+
+function CheckCommentOwnership(req, res, next){
+    if(req.isAuthenticated()){
+        //check comment ownership
+        Comment.findById(req.params.comment_id, function(err, foundComment){
+            if(err){
+                res.send("Error: Couldn't find comment.");
+            }
+            else{
+                if(foundComment.author.id.equals(req.user._id)){
+                    next();
+                }
+                else{
+                    res.redirect("back");
+                    console.log("You don't have permission to that.");  
+                }
+            }
+        });
+    }
+    else{
+        res.redirect("back");
+    }
+}
+
+
+ //middleware
+ function IsLoggedIn(req, res, next){
     if(req.isAuthenticated()){
         return next();
     }
