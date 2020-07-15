@@ -9,6 +9,6 @@ It's a full stack wen application where people from around the world can share p
 -PassportJS
 -Bootstrap
 -HTML/CSS/Javascript 
--Express.ks
+-Express.js
 -Passport.js
 -Node.js
